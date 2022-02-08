@@ -21,19 +21,20 @@ class FileHandler:
             for root, dirs, files in os.walk(root_dir, topdown=False):
                 for name in files:
                     self.files_path.append(os.path.join(root, name))
+        print(self.files_path)
 
     def get_file_size(self):
         print("Enter file format:")
         file_type = input()
-
         for file_path in self.files_path:
-            if not file_type or os.path.splitext(file_path)[1] == file_type:
+            if not file_type or os.path.splitext(file_path)[1] == "." + file_type:
                 size = os.path.getsize(file_path)
                 self.files_size.setdefault(size, []).append(file_path)
 
         for size in self.files_size:
             if len(self.files_size[size]) > 1:
                 self.dpl_size.append(size)
+        print(self.dpl_size)
 
     def compare_file_size(self):
         print('''Size sorting options:
@@ -96,23 +97,29 @@ Enter a sorting option:''')
         while True:
             print("Delete files?")
             delete_option = input()
-            if delete_option not in ["yes", "no"]:
-                print("Wrong option")
-                continue
-            else:
-                if delete_option == "yes":
-                    print("Enter file numbers to delete:")
-                    freed_size = 0
+            if delete_option == "yes":
+                print("Enter file numbers to delete:")
+                freed_size = 0
+                delete_num = input().split()
+                if delete_num:
                     try:
-                        delete_num = input().split(" ")
                         for num in delete_num:
-                            assert int(num) <= self.file_num
-                            freed_size += os.path.getsize(self.dpl_files[num])
+                            i = int(num)
+                            freed_size += int(os.path.getsize(self.dpl_files[num]))
                             os.remove(self.dpl_files[num])
                         print(f"Total freed up space: {freed_size} bytes")
-                    except AssertionError:
+                        break
+                    except ValueError:
                         print("Wrong format")
+                    except KeyError:
+                        print("Wrong format")
+                else:
+                    print("Wrong format")
+
+            elif delete_option == "no":
                 break
+            else:
+                print("Wrong option")
 
 
 handler = FileHandler()
