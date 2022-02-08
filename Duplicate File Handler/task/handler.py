@@ -9,6 +9,8 @@ class FileHandler:
         self.files_size = {}
         self.dpl_size = []
         self.files_hash = {}
+        self.file_num = 1
+        self.dpl_files = {}
 
     def get_files_path(self):
         try:
@@ -80,14 +82,36 @@ Enter a sorting option:''')
                             if len(self.files_hash[size][hash_value]) > 1:
                                 dpl_size_hash.setdefault(size, []).append(hash_value)
 
-                    i = 1
                     for size in dpl_size_hash:
                         print(f"{size} bytes")
                         for hash_value in dpl_size_hash[size]:
                             print(f"hash: {hash_value}")
                             for x in range(len(self.files_hash[size][hash_value])):
-                                print(f"{i + x}. {self.files_hash[size][hash_value][x]}")
-                            i += len(self.files_hash[size][hash_value])
+                                self.dpl_files[str(self.file_num + x)] = self.files_hash[size][hash_value][x]
+                                print(f"{self.file_num + x}. {self.files_hash[size][hash_value][x]}")
+                            self.file_num += len(self.files_hash[size][hash_value])
+                break
+
+    def delete_files(self):
+        while True:
+            print("Delete files?")
+            delete_option = input()
+            if delete_option not in ["yes", "no"]:
+                print("Wrong option")
+                continue
+            else:
+                if delete_option == "yes":
+                    print("Enter file numbers to delete:")
+                    freed_size = 0
+                    try:
+                        delete_num = input().split(" ")
+                        for num in delete_num:
+                            assert int(num) <= self.file_num
+                            freed_size += os.path.getsize(self.dpl_files[num])
+                            os.remove(self.dpl_files[num])
+                        print(f"Total freed up space: {freed_size} bytes")
+                    except AssertionError:
+                        print("Wrong format")
                 break
 
 
@@ -96,3 +120,4 @@ handler.get_files_path()
 handler.get_file_size()
 handler.compare_file_size()
 handler.compute_hash()
+handler.delete_files()
