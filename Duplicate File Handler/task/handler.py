@@ -1,5 +1,6 @@
 import os
 import sys
+import hashlib
 
 
 class FileHandler:
@@ -7,6 +8,8 @@ class FileHandler:
         self.files_path = []
         self.files_size = {}
         self.dpl_size = []
+        self.files_hash = {}
+        self.dpl_hash = []
 
     def get_files_path(self):
         try:
@@ -44,14 +47,50 @@ Enter a sorting option:''')
                 continue
             else:
                 descending = sort_option == "1"
-                for size in sorted(self.dpl_size, reverse=descending):
+                self.dpl_size = sorted(self.dpl_size, reverse=descending)
+                for size in self.dpl_size:
                     print(f"{size} bytes")
                     print(*self.files_size[size], sep="\n")
                     print()
-                    break
+                break
+
+    def compute_hash(self):
+        while True:
+            print("Check for duplicates?")
+            duplicates_option = input()
+            if duplicates_option not in ["yes", "no"]:
+                print("Wrong option")
+                continue
+            else:
+                if duplicates_option == "yes":
+                    for size in self.dpl_size:
+                        for file_path in self.files_size[size]:
+                            with open(file_path, "rb") as duplicate_file:
+                                m = hashlib.md5()
+                                m.update(duplicate_file.read())
+                                hash_value = m.hexdigest()
+                                file_hash = {}  # map hash value and file path for files in each duplicate size
+                                file_hash.setdefault(hash_value, []).append(file_path)
+                                self.files_hash[size] = file_hash
+                    dpl_sizes = []  # duplicate files size
+                    for size in self.files_hash:
+                        for hash_value in self.files_hash[size]:
+                            if len(self.files_hash[size][hash_value]) > 1:
+                                dpl_sizes.append(size)
+                                self.dpl_hash.append(hash_value)
+                    i = 1
+                    for size in dpl_sizes:
+                        print(f"{size} bytes")
+                        for hash_value in self.dpl_hash:
+                            print(f"hash: {hash_value}")
+                            for x in range(len(self.files_hash[size][hash_value])):
+                                print(f"{i + x}. {self.files_hash[size][hash_value][x]}")
+                            i += len(self.files_hash[size][hash_value])
+                break
 
 
 handler = FileHandler()
 handler.get_files_path()
 handler.get_file_size()
 handler.compare_file_size()
+handler.compute_hash()
