@@ -9,7 +9,6 @@ class FileHandler:
         self.files_size = {}
         self.dpl_size = []
         self.files_hash = {}
-        self.dpl_hash = []
 
     def get_files_path(self):
         try:
@@ -64,24 +63,27 @@ Enter a sorting option:''')
             else:
                 if duplicates_option == "yes":
                     for size in self.dpl_size:
+                        file_hash = {}
                         for file_path in self.files_size[size]:
                             with open(file_path, "rb") as duplicate_file:
                                 m = hashlib.md5()
                                 m.update(duplicate_file.read())
                                 hash_value = m.hexdigest()
-                                file_hash = {}  # map hash value and file path for files in each duplicate size
-                                file_hash.setdefault(hash_value, []).append(file_path)
-                                self.files_hash[size] = file_hash
-                    dpl_sizes = []  # duplicate files size
+                            # map hash value and file path for files in each duplicate size
+                            file_hash.setdefault(hash_value, []).append(file_path)
+
+                        self.files_hash[size] = file_hash
+
+                    dpl_size_hash = {}  # duplicate files size and hash
                     for size in self.files_hash:
                         for hash_value in self.files_hash[size]:
                             if len(self.files_hash[size][hash_value]) > 1:
-                                dpl_sizes.append(size)
-                                self.dpl_hash.append(hash_value)
+                                dpl_size_hash.setdefault(size, []).append(hash_value)
+
                     i = 1
-                    for size in dpl_sizes:
+                    for size in dpl_size_hash:
                         print(f"{size} bytes")
-                        for hash_value in self.dpl_hash:
+                        for hash_value in dpl_size_hash[size]:
                             print(f"hash: {hash_value}")
                             for x in range(len(self.files_hash[size][hash_value])):
                                 print(f"{i + x}. {self.files_hash[size][hash_value][x]}")
